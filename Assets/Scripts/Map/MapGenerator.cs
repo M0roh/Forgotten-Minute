@@ -33,8 +33,6 @@ public class MapGenerator : MonoBehaviour
     private RoomState[,] _map;
     private List<Vector2Int> _existingRooms = new();
 
-    public RoomState[,] Map => _map;
-
     private void Awake()
     {
         if (_instance != null)
@@ -58,6 +56,13 @@ public class MapGenerator : MonoBehaviour
             _worldResetTimer = _worldResetTimeMax;
             ResetWorld();
         }
+    }
+
+    public RoomState GetRoom(Vector2Int position)
+    {
+        if (!IsRoomPossible(position))
+            return null;
+        return _map[position.x, position.y];
     }
 
     public async UniTask StartGeneration()
@@ -140,7 +145,7 @@ public class MapGenerator : MonoBehaviour
         return roomsGenerated;
     }
 
-    private int GenerateTreePath() 
+    private int GenerateTreePath()  
     {
         int roomsGenerated = 0;
 
@@ -203,6 +208,8 @@ public class MapGenerator : MonoBehaviour
     public bool IsRoomPossible(Vector2Int roomCoords) => 
         roomCoords.x > 0 && roomCoords.x < _mapSize &&
         roomCoords.y > 0 && roomCoords.y < _mapSize;
+
+    public bool RoomExists(Vector2Int roomCoords) => IsRoomPossible(roomCoords) && IsRoom(roomCoords);
 
     public int CountNeighbours(Vector2Int pos)
     {
