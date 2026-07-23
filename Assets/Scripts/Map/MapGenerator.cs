@@ -66,7 +66,7 @@ public class MapGenerator : MonoBehaviour
         _existingRooms = new();
 
         var startCords = new Vector2Int(_mapSize / 2, _mapSize / 2);
-        _map[startCords.x, startCords.y] = new(RoomType.Empty, 0);
+        _map[startCords.x, startCords.y] = new(RoomType.Empty, 0, startCords);
         _existingRooms.Add(startCords);
         Player.Instance.EnterRoom(startCords);
 
@@ -128,13 +128,13 @@ public class MapGenerator : MonoBehaviour
             if (newRoomCoords == null)
                 break;
 
-            _map[newRoomCoords.Value.x, newRoomCoords.Value.y] = new(GenerateRoomType(), Random.Range(1, _enemiesMaxCount));
+            _map[newRoomCoords.Value.x, newRoomCoords.Value.y] = new(GenerateRoomType(), Random.Range(1, _enemiesMaxCount), newRoomCoords.Value);
 
             roomsGenerated++;
             _existingRooms.Add(newRoomCoords.Value);
             lastProcessedRoom = newRoomCoords.Value;
         }
-        _map[lastProcessedRoom.x, lastProcessedRoom.y] = new(RoomType.Boss, 1);
+        _map[lastProcessedRoom.x, lastProcessedRoom.y] = new(RoomType.Boss, 1, lastProcessedRoom);
         _existingRooms.Remove(lastProcessedRoom);
 
         return roomsGenerated;
@@ -152,7 +152,7 @@ public class MapGenerator : MonoBehaviour
             if (newRoomCoords == null)
                 break;
 
-            _map[newRoomCoords.Value.x, newRoomCoords.Value.y] = new(GenerateRoomType(), Random.Range(1, _enemiesMaxCount));
+            _map[newRoomCoords.Value.x, newRoomCoords.Value.y] = new(GenerateRoomType(), Random.Range(1, _enemiesMaxCount), newRoomCoords.Value);
 
             roomsGenerated++;
             _existingRooms.Add(newRoomCoords.Value);
@@ -169,13 +169,13 @@ public class MapGenerator : MonoBehaviour
         if (roll < 60)
             return RoomType.Enemies;
 
-        if (roll < 80)
+        if (roll < 75)
             return RoomType.Empty;
 
-        if (roll < 95)
-            return RoomType.Loot;
+        if (roll < 90)
+            return RoomType.Shop;
 
-        return RoomType.Shop;
+        return RoomType.Loot;
     }
 
     private Vector2Int? FindNextRoom(Vector2Int current)
@@ -221,7 +221,13 @@ public class MapGenerator : MonoBehaviour
     {
         foreach (var i in _map)
         {
-            i?.RoomReset();
+            if (i == null)
+                continue;
+
+            else if (i.Position != Player.Instance.CurrentRoomCoords 
+                && i.State != RoomType.Boss)
+                i.RoomReset(GenerateRoomType());
         }
+        DebugMap();
     }
 }
