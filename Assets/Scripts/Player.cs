@@ -4,6 +4,9 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D), typeof(Camera))]
 public class Player : MonoBehaviour
 {
+    private static Player _instance;
+    public static Player Instance => _instance;
+
     [Header("Health")]
     private int _health = 10;
     [SerializeField] private int _maxHealth = 10;
@@ -17,10 +20,17 @@ public class Player : MonoBehaviour
     [SerializeField] private int _walkSpeed = 5;
     [SerializeField] private float _sprintMultiplayer = 1.5f;
 
+    private Vector2Int _currentRoomCoords;
+    public Vector2Int CurrentRoomCoords => _currentRoomCoords;
+
     private Rigidbody2D _rb;
 
     private void Awake()
     {
+        if (_instance != null)
+            Destroy(this);
+        _instance = this;
+
         _rb = GetComponent<Rigidbody2D>();
 
         _health = _maxHealth;
@@ -44,20 +54,22 @@ public class Player : MonoBehaviour
         GameInput.Instance.Actions.Player.Sprint.canceled -= Sprint_canceled;
     }
 
-    private void Sprint_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
-    {
-        _currentSpeed = _walkSpeed;
-    }
-
     private void Sprint_started(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
         _currentSpeed = _walkSpeed * _sprintMultiplayer;
     }
 
-    void Move()
+    private void Sprint_canceled(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    {
+        _currentSpeed = _walkSpeed;
+    }
+
+    private void Move()
     {
         var moveVector = GameInput.Instance.GetMoveVector();
 
         _rb.linearVelocity = moveVector * _currentSpeed;
     }
+
+    public void EnterRoom(Vector2Int roomCoords) => _currentRoomCoords = roomCoords;
 }
