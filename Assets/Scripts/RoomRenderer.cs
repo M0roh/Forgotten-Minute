@@ -1,7 +1,11 @@
+using NavMeshPlus.Components;
+using System.Collections;
 using UnityEngine;
 
 public class RoomRenderer : MonoBehaviour
 {
+    [SerializeField] private NavMeshSurface _surface;
+
     [Header("Doors")]
     [SerializeField] private GameObject _leftDoor;
     [SerializeField] private GameObject _rightDoor;
@@ -18,13 +22,14 @@ public class RoomRenderer : MonoBehaviour
 
     private void Start()
     {
-        RenderRoom(PlayerRoom);
+        StartCoroutine(RenderRoom(PlayerRoom));
     }
 
-    private void RenderRoom(Vector2Int roomPosition)
+    private IEnumerator RenderRoom(Vector2Int roomPosition)
     {
+        yield return null;
         if (!MapGenerator.Instance.RoomExists(roomPosition))
-            return;
+            yield break;
 
         var room = MapGenerator.Instance.GetRoom(roomPosition);
 
@@ -41,6 +46,7 @@ public class RoomRenderer : MonoBehaviour
             _upDoor.SetActive(true);
         if (MapGenerator.Instance.RoomExists(roomPosition + Vector2Int.down))
             _downDoor.SetActive(true);
+        yield return null;
 
         switch (room.State)
         {
@@ -55,6 +61,9 @@ public class RoomRenderer : MonoBehaviour
             case RoomState.RoomType.Boss:
                 break;
         }
+        yield return null;
+
+        _surface.BuildNavMesh();
     }
 
     private void MoveToRoom(Vector2Int direction)
@@ -76,7 +85,7 @@ public class RoomRenderer : MonoBehaviour
             Player.Instance.transform.position = _upSpawn.position;
 
         Player.Instance.EnterRoom(next);
-        RenderRoom(next);
+        StartCoroutine(RenderRoom(next));
     }
 
     public void MoveLeftRoom() => MoveToRoom(Vector2Int.left);

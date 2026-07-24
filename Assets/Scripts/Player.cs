@@ -72,4 +72,6 @@ public class Player : MonoBehaviour
     }
 
     public void EnterRoom(Vector2Int roomCoords) => _currentRoomCoords = roomCoords;
+
+    public void TakeDamage(int damage) => _health -= damage;
 }
