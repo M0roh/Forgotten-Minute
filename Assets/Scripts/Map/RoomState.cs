@@ -40,7 +40,7 @@ public class RoomState
                 break;
             case RoomType.Enemies:
                 if (_enemiesCount <= 0) _enemiesCount = 5;
-                _enemiesCount = Random.Range(Mathf.Min(1, _enemiesCount - 5), Mathf.Min(_enemiesCount + 5, 10));
+                _enemiesCount = Random.Range(Mathf.Max(1, _enemiesCount - 5), Mathf.Min(_enemiesCount + 5, 10));
                 break;
             case RoomType.Shop:
                 break;
