@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -22,6 +23,7 @@ public class Player : MonoBehaviour
     [SerializeField] private float _sprintMultiplayer = 1.5f;
 
     private Vector2Int _currentRoomCoords;
+    private readonly HashSet<EnemyAI> _hitEnemies = new();
 
     public Vector2Int CurrentRoomCoords => _currentRoomCoords;
 
@@ -69,12 +71,11 @@ public class Player : MonoBehaviour
 
     private void Attack_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
-        Debug.Log("Attack");
         if (_canAttack)
         {
             _canAttack = false;
             //_animator.SetTrigger(IS_ATTACK);
-            
+
             AttackColliderOn();
             StartCoroutine(AttackCooldown());
         }
@@ -82,13 +83,17 @@ public class Player : MonoBehaviour
 
     private IEnumerator AttackCooldown()
     {
-        yield return new WaitForSeconds(Time.fixedDeltaTime);
+        yield return new WaitForSeconds(0.8f);
         AttackColliderOff();
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1.2f);
         AttackEndTrigger();
     }
 
-    public void AttackColliderOn() => _attackCollider.enabled = true;
+    public void AttackColliderOn()
+    {
+        _hitEnemies.Clear();
+        _attackCollider.enabled = true;
+    }
     public void AttackColliderOff() => _attackCollider.enabled = false;
 
     public void AttackEndTrigger() => _canAttack = true;
@@ -116,14 +121,15 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!_attackCollider.IsTouching(collision))
+        if (!_attackCollider.enabled)
             return;
 
-            Debug.Log("Attack detected something");
-        if (collision.TryGetComponent(out EnemyAI enemy))
-        {
-            enemy.TakeDamage(_damage);
-            Debug.Log("Attack performed");
-        }
+        if (!collision.TryGetComponent(out EnemyAI enemy))
+            return;
+
+        if (!_hitEnemies.Add(enemy))
+            return;
+
+        enemy.TakeDamage(_damage);
     }
 }
