@@ -14,12 +14,12 @@ public class RoomState
     private Vector2Int _position;
     private RoomType _state;
     private int _enemiesCount;
-    private bool _isVisited = false;
+    private bool _isCleared = false;
 
     public RoomType State => _state;
     public int EnemiesCount => _enemiesCount;
     public Vector2Int Position => _position;
-    public bool IsVisited => _isVisited;
+    public bool IsCleared => _isCleared;
 
     public RoomState(RoomType roomState, int enemiesCount, Vector2Int position)
     {
@@ -32,7 +32,7 @@ public class RoomState
     public void RoomReset(RoomType newType)
     {
         _state = newType;
-        _isVisited = false;
+        _isCleared = false;
 
         switch (_state)
         {
@@ -53,7 +53,7 @@ public class RoomState
 
     public void RoomClear()
     {
-        _isVisited = true;
+        _isCleared = true;
         switch (_state)
         {
             case RoomType.Enemies:

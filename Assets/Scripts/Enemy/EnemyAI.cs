@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
@@ -134,6 +135,8 @@ public abstract class EnemyAI : MonoBehaviour
     public SpriteRenderer EnemySprite => _spriteRenderer;
     protected PolygonCollider2D AttackCollider => _polygonCollider;
 
+    public event Action<EnemyAI> OnDeath;
+
     protected virtual void Awake() {
         _navMeshAgent = GetComponent<NavMeshAgent>();
         //_soundsSource = GetComponentInParent<AudioSource>();
@@ -156,7 +159,7 @@ public abstract class EnemyAI : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (DeathCheck())
+        if (_currentState == State.Death || DeathCheck())
             return;
 
         if (CheckAttackDistance())
@@ -184,6 +187,7 @@ public abstract class EnemyAI : MonoBehaviour
             DisableAllColliders(gameObject);
             _currentState = State.Death;
             Agent.isStopped = true;
+            OnDeath?.Invoke(this);
         //  _animator.SetTrigger(IS_DEATH);
 
             return true;

@@ -1,10 +1,14 @@
 using NavMeshPlus.Components;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class RoomRenderer : MonoBehaviour
 {
+    [Header("Room")]
     [SerializeField] private NavMeshSurface _surface;
+    [SerializeField] private GameObject _enemiesParent;
+    [SerializeField] private List<GameObject> _enemies;
 
     [Header("Doors")]
     [SerializeField] private GameObject _leftDoor;
@@ -18,15 +22,25 @@ public class RoomRenderer : MonoBehaviour
     [SerializeField] private Transform _upSpawn;
     [SerializeField] private Transform _downSpawn;
 
+    private List<EnemyAI> _spawnedEnemy = new();
+    private bool _isRoomBlocked = false;
     protected Vector2Int PlayerRoom => Player.Instance.CurrentRoomCoords;
 
     private void Start()
     {
-        StartCoroutine(RenderRoom(PlayerRoom));
+        StartCoroutine(RerenderRoom(PlayerRoom));
     }
 
-    private IEnumerator RenderRoom(Vector2Int roomPosition)
+    private IEnumerator RerenderRoom(Vector2Int roomPosition)
     {
+        _isRoomBlocked = false;
+        _spawnedEnemy.Clear();
+        yield return null;
+        foreach (Transform child in _enemiesParent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+
         yield return null;
         if (!MapGenerator.Instance.RoomExists(roomPosition))
             yield break;
@@ -53,6 +67,23 @@ public class RoomRenderer : MonoBehaviour
             case RoomState.RoomType.Loot:
                 break;
             case RoomState.RoomType.Enemies:
+                if (room.IsCleared || room.EnemiesCount <= 0)
+                    break;
+
+                CloseDoors();
+                for (int i = 0; i < room.EnemiesCount; i++)
+                {
+                    var enemyIndex = Random.Range(0, _enemies.Count);
+                    var enemyPrefab = _enemies[enemyIndex];
+
+                    Vector3 position = Vector3.zero;
+                    yield return Utils.GetRandomPointOnNavMesh(Vector3.zero, 20, point => position = point);
+
+                    var enemy = Instantiate(enemyPrefab, position, Quaternion.identity, _enemiesParent.transform);
+                    var enemyAI = enemy.GetComponent<EnemyAI>();
+                    enemyAI.OnDeath += EnemyDead;
+                    _spawnedEnemy.Add(enemyAI);
+                }
                 break;
             case RoomState.RoomType.Shop:
                 break;
@@ -66,8 +97,33 @@ public class RoomRenderer : MonoBehaviour
         _surface.BuildNavMesh();
     }
 
+    private void EnemyDead(EnemyAI enemy)
+    {
+        _spawnedEnemy.Remove(enemy);
+
+        if (_spawnedEnemy.Count == 0)
+        {
+            OpenDoors();
+            MapGenerator.Instance.GetRoom(PlayerRoom).RoomClear();
+            StartCoroutine(RerenderRoom(PlayerRoom));
+        }
+    }
+
+    private void CloseDoors()
+    {
+        _isRoomBlocked = true;
+    }
+
+    private void OpenDoors()
+    {
+        _isRoomBlocked = false;
+    }
+
     private void MoveToRoom(Vector2Int direction)
     {
+        if (_isRoomBlocked)
+            return;
+
         var next = PlayerRoom + direction;
         if (!MapGenerator.Instance.IsRoomPossible(next) || !MapGenerator.Instance.IsRoom(next))
         {
@@ -85,7 +141,7 @@ public class RoomRenderer : MonoBehaviour
             Player.Instance.transform.position = _upSpawn.position;
 
         Player.Instance.EnterRoom(next);
-        StartCoroutine(RenderRoom(next));
+        StartCoroutine(RerenderRoom(next));
     }
 
     public void MoveLeftRoom() => MoveToRoom(Vector2Int.left);
