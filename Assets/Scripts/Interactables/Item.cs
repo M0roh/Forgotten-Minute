@@ -13,8 +13,9 @@ public abstract class Item : MonoBehaviour
     [SerializeField] private GameObject _priceUI;
     [SerializeField] private TMP_Text _priceText;
 
-    private float _spawnTime;
 
+    private float _spawnTime;
+    public Item SourcePrefab { get; set; }
     public bool BuyRequired => _buyRequired;
 
     public event Action OnBuy;

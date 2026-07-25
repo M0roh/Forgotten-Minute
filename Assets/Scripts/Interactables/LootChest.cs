@@ -6,13 +6,16 @@ using UnityEngine;
 public class LootChest : MonoBehaviour
 {
     private List<Item> _items = new();
+    private Transform _itemsParent;
 
     public event Action OnOpen;
 
-    public void SetLoot(List<Item> items)
+    public void SetLoot(List<Item> items, Transform itemsParent)
     {
         if (_items != null && _items.Count <= 0)
             _items = items;
+
+        _itemsParent = itemsParent;
     }
 
     public void OnInteract()
@@ -23,11 +26,13 @@ public class LootChest : MonoBehaviour
             var spawnedItem = Instantiate(
                 item,
                 transform.position,
-                Quaternion.identity
+                Quaternion.identity,
+                _itemsParent
             );
 
             Vector2 direction = UnityEngine.Random.insideUnitCircle.normalized;
             spawnedItem.Throw(direction, 20f);
+            spawnedItem.SourcePrefab = item;
         }
 
         Destroy(gameObject);

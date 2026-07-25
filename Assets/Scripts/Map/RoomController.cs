@@ -47,12 +47,13 @@ public class RoomRenderer : MonoBehaviour
         _isRoomBlocked = false;
         _spawnedEnemy.Clear();
         yield return null;
+
         foreach (Transform child in _roomContentParent.transform)
         {
             Destroy(child.gameObject);
         }
-
         yield return null;
+
         if (!MapController.Instance.RoomExists(roomPosition))
             yield break;
 
@@ -71,6 +72,9 @@ public class RoomRenderer : MonoBehaviour
             _upDoor.SetActive(true);
         if (MapController.Instance.RoomExists(roomPosition + Vector2Int.down))
             _downDoor.SetActive(true);
+        yield return null;
+
+        _surface.BuildNavMesh();
         yield return null;
 
         switch (room.State)
@@ -92,7 +96,7 @@ public class RoomRenderer : MonoBehaviour
                 }
 
                 var chest = Instantiate(_chestPrefab, Vector3.zero, Quaternion.identity, _roomContentParent);
-                chest.SetLoot(room.LootItems);
+                chest.SetLoot(room.LootItems, _roomContentParent);
                 chest.OnOpen += () => room.RoomClear();
                 break;
             case RoomState.RoomType.Enemies:
@@ -134,6 +138,7 @@ public class RoomRenderer : MonoBehaviour
                     var position = _shopItemPoints[shopItem.Slot].position;
                     var itemSpawned = Instantiate(shopItem.ShopItem, position, Quaternion.identity, _roomContentParent);
                     itemSpawned.OnBuy += shopItem.Item_OnBuy;
+                    itemSpawned.SourcePrefab = shopItem.ShopItem;
                     itemSpawned.SetAsShopItem();
                 }
                 break;
@@ -144,7 +149,11 @@ public class RoomRenderer : MonoBehaviour
         }
         yield return null;
 
-        _surface.BuildNavMesh();
+        foreach (var item in room.GroundLoot)
+        {
+            var itemSpawned = Instantiate(item.Item, item.Position, Quaternion.identity, _roomContentParent);
+            itemSpawned.SourcePrefab = item.Item;
+        }
     }
 
     private void EnemyDead(EnemyAI enemy)
@@ -189,6 +198,8 @@ public class RoomRenderer : MonoBehaviour
             Player.Instance.transform.position = _downSpawn.position;
         else if (direction == Vector2Int.down)
             Player.Instance.transform.position = _upSpawn.position;
+        
+        MapController.Instance.GetRoom(PlayerRoom).SaveGroundLoot(_roomContentParent);
 
         Player.Instance.EnterRoom(next);
         StartCoroutine(RerenderRoom(next));

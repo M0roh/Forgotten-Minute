@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 public class RoomState
 {
@@ -21,6 +23,7 @@ public class RoomState
     private bool _isLootGenerated = false;
     private List<Item> _lootItems = new();
     private List<ShopState> _shopItems = new();
+    public List<LootData> _groundLoot = new();
 
     public RoomType State => _state;
     public int EnemiesCount => _enemiesCount;
@@ -30,6 +33,7 @@ public class RoomState
     public bool IsLootGenerated => _isLootGenerated;
     public List<Item> LootItems => _lootItems;
     public List<ShopState> ShopItems => _shopItems;
+    public List<LootData> GroundLoot => _groundLoot;
 
     public RoomState(RoomType roomState, int enemiesCount, Vector2Int position)
     {
@@ -37,6 +41,19 @@ public class RoomState
         _position = position;
 
         RoomReset(roomState);
+    }
+
+    public void SaveGroundLoot(Transform parentObject)
+    {
+        _groundLoot.Clear();
+        foreach (Transform obj in parentObject)
+        {
+            if (!obj.TryGetComponent(out Item item))
+                continue;
+
+            if (!item.BuyRequired)
+                _groundLoot.Add(new(item.SourcePrefab, obj.position));
+        }
     }
 
     public void LootAdd(Item item)
@@ -49,6 +66,10 @@ public class RoomState
     {
         _state = newType;
         _isCleared = false;
+        _groundLoot.Clear();
+        _lootItems.Clear();
+        _isLootGenerated = false;
+        _shopItems.Clear();
 
         switch (_state)
         {
