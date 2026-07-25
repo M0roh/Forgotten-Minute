@@ -7,6 +7,16 @@ public abstract class Boss : EnemyAI
         CurrentState = State.Follow;
     }
 
+    private void OnEnable()
+    {
+        BossHealthBar.Instance.RegisterBoss(this);
+    }
+
+    private void OnDisable()
+    {
+        BossHealthBar.Instance.UnregisterBoss(this);
+    }
+
     protected override void Update()
     {
         if (DeathCheck())
@@ -38,6 +48,13 @@ public abstract class Boss : EnemyAI
                 break;
         }
     }
+
+    public override void TakeDamage(int damage)
+    {
+        base.TakeDamage(damage);
+        BossHealthBar.Instance.UpdateBar();
+    }
+
     public void AttackColliderON() => AttackCollider.enabled = true;
     public virtual void AttackColliderOFF() => AttackCollider.enabled = false;
 }

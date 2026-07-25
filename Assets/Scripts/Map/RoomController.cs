@@ -24,6 +24,7 @@ public class RoomRenderer : MonoBehaviour
 
     [Header("Enemies")]
     [SerializeField] private List<EnemyAI> _enemies;
+    [SerializeField] private List<Boss> _bosses;
 
     [Header("Chest")]
     [SerializeField] private LootChest _chestPrefab;
@@ -145,6 +146,16 @@ public class RoomRenderer : MonoBehaviour
             case RoomState.RoomType.Empty:
                 break;
             case RoomState.RoomType.Boss:
+                if (room.IsCleared || room.EnemiesCount <= 0)
+                    break;
+
+                CloseDoors();
+                var bossIndex = Random.Range(0, _enemies.Count);
+                var bossPrefab = _bosses[bossIndex];
+
+                var boss = Instantiate(bossPrefab, Vector3.zero, Quaternion.identity, _roomContentParent);
+                boss.OnDeath += EnemyDead;
+                _spawnedEnemy.Add(boss);
                 break;
         }
         yield return null;

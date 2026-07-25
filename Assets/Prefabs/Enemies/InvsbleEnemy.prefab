@@ -211,7 +211,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ShadowGuardian
   _maxHealth: 10
-  _damage: 2
+  _damage: 1
   _roamingDistanceMax: 50
   _roamingDistanceMin: 10
   _distanceStartFollow: 5

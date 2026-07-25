@@ -331,7 +331,7 @@ public abstract class EnemyAI : MonoBehaviour
         _polygonCollider.enabled = false;
     }
 
-    public void TakeDamage(int damage)
+    public virtual void TakeDamage(int damage)
     {
         if (_currentHealth <= 0)
             return;
