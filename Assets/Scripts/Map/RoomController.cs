@@ -42,23 +42,23 @@ public class RoomRenderer : MonoBehaviour
         }
 
         yield return null;
-        if (!MapGenerator.Instance.RoomExists(roomPosition))
+        if (!MapController.Instance.RoomExists(roomPosition))
             yield break;
 
-        var room = MapGenerator.Instance.GetRoom(roomPosition);
+        var room = MapController.Instance.GetRoom(roomPosition);
 
         _leftDoor.SetActive(false);
         _rightDoor.SetActive(false);
         _upDoor.SetActive(false);
         _downDoor.SetActive(false);
 
-        if (MapGenerator.Instance.RoomExists(roomPosition + Vector2Int.left))
+        if (MapController.Instance.RoomExists(roomPosition + Vector2Int.left))
             _leftDoor.SetActive(true);
-        if (MapGenerator.Instance.RoomExists(roomPosition + Vector2Int.right))
+        if (MapController.Instance.RoomExists(roomPosition + Vector2Int.right))
             _rightDoor.SetActive(true);
-        if (MapGenerator.Instance.RoomExists(roomPosition + Vector2Int.up))
+        if (MapController.Instance.RoomExists(roomPosition + Vector2Int.up))
             _upDoor.SetActive(true);
-        if (MapGenerator.Instance.RoomExists(roomPosition + Vector2Int.down))
+        if (MapController.Instance.RoomExists(roomPosition + Vector2Int.down))
             _downDoor.SetActive(true);
         yield return null;
 
@@ -104,7 +104,7 @@ public class RoomRenderer : MonoBehaviour
         if (_spawnedEnemy.Count == 0)
         {
             OpenDoors();
-            MapGenerator.Instance.GetRoom(PlayerRoom).RoomClear();
+            MapController.Instance.GetRoom(PlayerRoom).RoomClear();
             StartCoroutine(RerenderRoom(PlayerRoom));
         }
     }
@@ -125,7 +125,7 @@ public class RoomRenderer : MonoBehaviour
             return;
 
         var next = PlayerRoom + direction;
-        if (!MapGenerator.Instance.IsRoomPossible(next) || !MapGenerator.Instance.IsRoom(next))
+        if (!MapController.Instance.IsRoomPossible(next) || !MapController.Instance.IsRoom(next))
         {
             Debug.LogError("Player moved into impossible room");
             return;

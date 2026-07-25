@@ -2,13 +2,14 @@ using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TMPro;
 using UnityEngine;
 using static RoomState;
 
-public class MapGenerator : MonoBehaviour
+public class MapController : MonoBehaviour
 {
-    private static MapGenerator _instance;
-    public static MapGenerator Instance => _instance;
+    private static MapController _instance;
+    public static MapController Instance => _instance;
 
     [Header("Map")]
     [SerializeField] private int _mapSize = 15;
@@ -20,7 +21,9 @@ public class MapGenerator : MonoBehaviour
 
     [Header("World Reset")]
     [SerializeField] private int _worldResetTimeMax = 60;
+    [SerializeField] private TMP_Text _resetTimerText;
     private float _worldResetTimer = 60;
+    private int _lastDisplayedSeconds = -1;
 
     private static readonly Vector2Int[] ALL_DIRECTIONS =
     {
@@ -51,9 +54,17 @@ public class MapGenerator : MonoBehaviour
     {
         _worldResetTimer -= Time.deltaTime;
 
+        int currentSeconds = Mathf.Max(0, Mathf.CeilToInt(_worldResetTimer));
+        if (currentSeconds != _lastDisplayedSeconds)
+        {
+            _lastDisplayedSeconds = currentSeconds;
+            _resetTimerText.text = currentSeconds.ToString();
+        }
+
         if (_worldResetTimer <= 0)
         {
             _worldResetTimer = _worldResetTimeMax;
+            _lastDisplayedSeconds = -1;
             ResetWorld();
         }
     }
