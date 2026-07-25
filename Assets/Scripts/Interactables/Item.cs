@@ -3,17 +3,23 @@
 [RequireComponent(typeof(Collider2D), typeof(Rigidbody2D))]
 public abstract class Item : MonoBehaviour
 {
-    protected abstract void OnInteract(Player player);
+    private float _spawnTime;
 
     private Rigidbody2D _rb;
 
     private void Awake()
     {
-        _rb = GetComponent<Rigidbody2D>();    
+        _rb = GetComponent<Rigidbody2D>();
+        _spawnTime = Time.time;
     }
+    
+    protected abstract void OnInteract(Player player);
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (Time.time - _spawnTime < 0.5f)
+            return;
+
         if (collision.TryGetComponent(out Player player))
             OnInteract(player);
     }

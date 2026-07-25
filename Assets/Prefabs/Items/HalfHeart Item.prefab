@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 5933255058131179969}
   - component: {fileID: 3613493004930626200}
   - component: {fileID: 5099157030301363589}
-  - component: {fileID: 5337026590964639553}
+  - component: {fileID: 535556226507122925}
   m_Layer: 0
-  m_Name: Heart Item
+  m_Name: HalfHeart Item
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -85,7 +85,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: f176399f3af59394ebb255ae0e7052b3, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 1198b8835ee902d4187769bc87841c80, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -172,8 +172,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dc4371d942002e42ba4dac02caa4e2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HealItem
-  _healAmont: 2
---- !u!70 &5337026590964639553
+  _healAmount: 1
+--- !u!70 &535556226507122925
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -48,9 +48,13 @@ public class Player : MonoBehaviour
     public int MaxHealth
     {
         get => _maxHealth;
-        private set
+        set
         {
+            if (_maxHealth <= 1)
+                return;
+
             _maxHealth = value;
+            OnHealthChange?.Invoke(_health);
         }
     }
 
@@ -64,8 +68,19 @@ public class Player : MonoBehaviour
         }
     }
 
+    public int Damage
+    {
+        get => _damage;
+        set
+        {
+            _damage = value;
+            OnDamageChange?.Invoke(value);
+        }
+    }
+
     public event Action<int> OnHealthChange;
     public event Action<int> OnCoinsChange;
+    public event Action<int> OnDamageChange;
 
     private void Awake()
     {

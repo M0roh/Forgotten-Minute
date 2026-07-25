@@ -15,7 +15,10 @@ public class PlayerStatsUI : MonoBehaviour
     [SerializeField] private Sprite _emptyHeartSprite;
 
     [Header("Money")]
-    [SerializeField] private TMP_Text _moneyCount;
+    [SerializeField] private TMP_Text _moneyCounter;
+
+    [Header("Damage")]
+    [SerializeField] private TMP_Text _damageCounter;
 
     private List<Image> _spawnedHearts = new();
 
@@ -23,23 +26,31 @@ public class PlayerStatsUI : MonoBehaviour
     {
         Player_OnCoinsChange(Player.Instance.Coins);
         Player_OnHealthChange(Player.Instance.Health);
+        Player_OnDamageChange(Player.Instance.Damage);
     }
 
     private void OnEnable()
     {
         Player.Instance.OnHealthChange += Player_OnHealthChange;
         Player.Instance.OnCoinsChange += Player_OnCoinsChange;
+        Player.Instance.OnDamageChange += Player_OnDamageChange;
     }
 
     private void OnDisable()
     {
         Player.Instance.OnHealthChange -= Player_OnHealthChange;
         Player.Instance.OnCoinsChange -= Player_OnCoinsChange;
+        Player.Instance.OnDamageChange -= Player_OnDamageChange;
+    }
+
+    private void Player_OnDamageChange(int damage)
+    {
+        _damageCounter.text = damage.ToString();
     }
 
     private void Player_OnCoinsChange(int coins)
     {
-        _moneyCount.text = coins.ToString();
+        _moneyCounter.text = coins.ToString();
     }
 
     private void Player_OnHealthChange(int currentHealth)
