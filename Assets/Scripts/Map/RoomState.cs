@@ -20,6 +20,7 @@ public class RoomState
 
     private bool _isLootGenerated = false;
     private List<Item> _lootItems = new();
+    private List<ShopState> _shopItems = new();
 
     public RoomType State => _state;
     public int EnemiesCount => _enemiesCount;
@@ -28,6 +29,7 @@ public class RoomState
 
     public bool IsLootGenerated => _isLootGenerated;
     public List<Item> LootItems => _lootItems;
+    public List<ShopState> ShopItems => _shopItems;
 
     public RoomState(RoomType roomState, int enemiesCount, Vector2Int position)
     {
@@ -83,6 +85,8 @@ public class RoomState
             //    break;
             case RoomType.Chest:
                 _state = RoomType.Empty;
+                break;
+            default:
                 break;
         }
     }

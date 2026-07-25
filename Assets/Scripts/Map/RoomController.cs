@@ -7,6 +7,8 @@ public class RoomRenderer : MonoBehaviour
 {
     [Header("Room")]
     [SerializeField] private NavMeshSurface _surface;
+    [SerializeField] private Transform _roomContentParent;
+    [SerializeField] private List<Transform> _shopItemPoints;
 
     [Header("Doors")]
     [SerializeField] private GameObject _leftDoor;
@@ -21,13 +23,15 @@ public class RoomRenderer : MonoBehaviour
     [SerializeField] private Transform _downSpawn;
 
     [Header("Enemies")]
-    [SerializeField] private Transform _enemiesParent;
     [SerializeField] private List<EnemyAI> _enemies;
 
     [Header("Chest")]
     [SerializeField] private LootChest _chestPrefab;
-    [SerializeField] private List<Item> _availdableItems = new();
+    [SerializeField] private List<Item> _chestItems = new();
     [SerializeField, Min(1)] private int _maxItemsInChest = 4;
+
+    [Header("Shop")]
+    [SerializeField] private List<Item> _shopItems = new();
 
     private List<EnemyAI> _spawnedEnemy = new();
     private bool _isRoomBlocked = false;
@@ -43,7 +47,7 @@ public class RoomRenderer : MonoBehaviour
         _isRoomBlocked = false;
         _spawnedEnemy.Clear();
         yield return null;
-        foreach (Transform child in _enemiesParent.transform)
+        foreach (Transform child in _roomContentParent.transform)
         {
             Destroy(child.gameObject);
         }
@@ -75,19 +79,19 @@ public class RoomRenderer : MonoBehaviour
                 if (room.IsCleared)
                     break;
 
-                if (!room.IsLootGenerated && _availdableItems.Count > 0)
+                if (!room.IsLootGenerated && _chestItems.Count > 0)
                 {
                     var itemsCount = Random.Range(1, _maxItemsInChest);
 
                     for (var i = 0; i < itemsCount; i++)
                     {
-                        var itemIndex = Random.Range(0, _availdableItems.Count);
-                        var item = _availdableItems[itemIndex];
+                        var itemIndex = Random.Range(0, _chestItems.Count);
+                        var item = _chestItems[itemIndex];
                         room.LootAdd(item);
                     }
                 }
 
-                var chest = Instantiate(_chestPrefab, Vector3.zero, Quaternion.identity, transform);
+                var chest = Instantiate(_chestPrefab, Vector3.zero, Quaternion.identity, _roomContentParent);
                 chest.SetLoot(room.LootItems);
                 chest.OnOpen += () => room.RoomClear();
                 break;
@@ -104,12 +108,34 @@ public class RoomRenderer : MonoBehaviour
                     Vector3 position = Vector3.zero;
                     yield return Utils.GetRandomPointOnNavMesh(Vector3.zero, 20, point => position = point);
 
-                    var enemy = Instantiate(enemyPrefab, position, Quaternion.identity, _enemiesParent);
+                    var enemy = Instantiate(enemyPrefab, position, Quaternion.identity, _roomContentParent);
                     enemy.OnDeath += EnemyDead;
                     _spawnedEnemy.Add(enemy);
                 }
                 break;
             case RoomState.RoomType.Shop:
+                if (room.ShopItems.Count <= 0 && _shopItems.Count > 0)
+                {
+                    for (var i = 0; i < 3; i++)
+                    {
+                        var itemIndex = Random.Range(0, _shopItems.Count);
+                        var item = _shopItems[itemIndex];
+                        room.ShopItems.Add(new (item, i));
+                    } 
+                    room.RoomClear();
+                }
+
+                for (var i = 0; i < room.ShopItems.Count; i++)
+                {
+                    var shopItem = room.ShopItems[i];
+                    if (shopItem.IsBuyed)
+                        continue;
+
+                    var position = _shopItemPoints[shopItem.Slot].position;
+                    var itemSpawned = Instantiate(shopItem.ShopItem, position, Quaternion.identity, _roomContentParent);
+                    itemSpawned.OnBuy += shopItem.Item_OnBuy;
+                    itemSpawned.SetAsShopItem();
+                }
                 break;
             case RoomState.RoomType.Empty:
                 break;
