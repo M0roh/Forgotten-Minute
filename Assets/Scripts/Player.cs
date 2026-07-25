@@ -1,8 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.AI;
+
 [RequireComponent(typeof(Rigidbody2D), typeof(Camera), typeof(PolygonCollider2D))]
 public class Player : MonoBehaviour
 {
@@ -22,6 +22,8 @@ public class Player : MonoBehaviour
     [SerializeField] private int _walkSpeed = 5;
     [SerializeField] private float _sprintMultiplayer = 1.5f;
 
+    private int _coins = 0;
+
     private Vector2Int _currentRoomCoords;
     private readonly HashSet<EnemyAI> _hitEnemies = new();
 
@@ -29,6 +31,38 @@ public class Player : MonoBehaviour
 
     private Rigidbody2D _rb;
     private PolygonCollider2D _attackCollider;
+
+    public int Health
+    {
+        get => _health;
+        private set
+        {
+            _health = value;
+            OnHealthChange?.Invoke(value);
+        }
+    }
+
+    public int MaxHealth
+    {
+        get => _maxHealth;
+        private set
+        {
+            _maxHealth = value;
+        }
+    }
+
+    public int Coins
+    {
+        get => _coins;
+        private set
+        {
+            _coins = value;
+            OnCoinsChange?.Invoke(value);
+        }
+    }
+
+    public event Action<int> OnHealthChange;
+    public event Action<int> OnCoinsChange;
 
     private void Awake()
     {
@@ -39,7 +73,7 @@ public class Player : MonoBehaviour
         _rb = GetComponent<Rigidbody2D>();
         _attackCollider = GetComponent<PolygonCollider2D>();
 
-        _health = _maxHealth;
+        Health = _maxHealth;
         _currentSpeed = _walkSpeed;
     }
 
@@ -117,7 +151,7 @@ public class Player : MonoBehaviour
 
     public void EnterRoom(Vector2Int roomCoords) => _currentRoomCoords = roomCoords;
 
-    public void TakeDamage(int damage) => _health -= damage;
+    public void TakeDamage(int damage) => Health -= damage;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
