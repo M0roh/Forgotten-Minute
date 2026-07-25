@@ -35,9 +35,12 @@ public class Player : MonoBehaviour
     public int Health
     {
         get => _health;
-        private set
+        set
         {
-            _health = value;
+            if (_health < 0 || _health > _maxHealth)
+                return;
+
+            _health = Mathf.Clamp(value, 0, MaxHealth);
             OnHealthChange?.Invoke(value);
         }
     }
@@ -54,7 +57,7 @@ public class Player : MonoBehaviour
     public int Coins
     {
         get => _coins;
-        private set
+        set
         {
             _coins = value;
             OnCoinsChange?.Invoke(value);

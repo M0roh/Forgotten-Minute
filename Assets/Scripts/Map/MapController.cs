@@ -121,7 +121,7 @@ public class MapController : MonoBehaviour
                     RoomType.Boss => " B ",
                     RoomType.Enemies => " E ",
                     RoomType.Empty => " S ",
-                    RoomType.Loot => " C ",
+                    RoomType.Chest => " C ",
                     RoomType.Shop => " $ ",
                     _ => " ? "
                 };
@@ -191,7 +191,7 @@ public class MapController : MonoBehaviour
         if (roll < 90)
             return RoomType.Shop;
 
-        return RoomType.Loot;
+        return RoomType.Chest;
     }
 
     private Vector2Int? FindNextRoom(Vector2Int current)

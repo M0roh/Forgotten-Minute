@@ -7,8 +7,6 @@ public class RoomRenderer : MonoBehaviour
 {
     [Header("Room")]
     [SerializeField] private NavMeshSurface _surface;
-    [SerializeField] private GameObject _enemiesParent;
-    [SerializeField] private List<GameObject> _enemies;
 
     [Header("Doors")]
     [SerializeField] private GameObject _leftDoor;
@@ -21,6 +19,15 @@ public class RoomRenderer : MonoBehaviour
     [SerializeField] private Transform _rightSpawn;
     [SerializeField] private Transform _upSpawn;
     [SerializeField] private Transform _downSpawn;
+
+    [Header("Enemies")]
+    [SerializeField] private Transform _enemiesParent;
+    [SerializeField] private List<EnemyAI> _enemies;
+
+    [Header("Chest")]
+    [SerializeField] private LootChest _chestPrefab;
+    [SerializeField] private List<Item> _availdableItems = new();
+    [SerializeField, Min(1)] private int _maxItemsInChest = 4;
 
     private List<EnemyAI> _spawnedEnemy = new();
     private bool _isRoomBlocked = false;
@@ -64,7 +71,25 @@ public class RoomRenderer : MonoBehaviour
 
         switch (room.State)
         {
-            case RoomState.RoomType.Loot:
+            case RoomState.RoomType.Chest:
+                if (room.IsCleared)
+                    break;
+
+                if (!room.IsLootGenerated && _availdableItems.Count > 0)
+                {
+                    var itemsCount = Random.Range(1, _maxItemsInChest);
+
+                    for (var i = 0; i < itemsCount; i++)
+                    {
+                        var itemIndex = Random.Range(0, _availdableItems.Count);
+                        var item = _availdableItems[itemIndex];
+                        room.LootAdd(item);
+                    }
+                }
+
+                var chest = Instantiate(_chestPrefab, Vector3.zero, Quaternion.identity, transform);
+                chest.SetLoot(room.LootItems);
+                chest.OnOpen += () => room.RoomClear();
                 break;
             case RoomState.RoomType.Enemies:
                 if (room.IsCleared || room.EnemiesCount <= 0)
@@ -79,10 +104,9 @@ public class RoomRenderer : MonoBehaviour
                     Vector3 position = Vector3.zero;
                     yield return Utils.GetRandomPointOnNavMesh(Vector3.zero, 20, point => position = point);
 
-                    var enemy = Instantiate(enemyPrefab, position, Quaternion.identity, _enemiesParent.transform);
-                    var enemyAI = enemy.GetComponent<EnemyAI>();
-                    enemyAI.OnDeath += EnemyDead;
-                    _spawnedEnemy.Add(enemyAI);
+                    var enemy = Instantiate(enemyPrefab, position, Quaternion.identity, _enemiesParent);
+                    enemy.OnDeath += EnemyDead;
+                    _spawnedEnemy.Add(enemy);
                 }
                 break;
             case RoomState.RoomType.Shop:
