@@ -14,10 +14,10 @@ public class RoomController : MonoBehaviour
     [SerializeField] private List<Transform> _shopItemPoints;
 
     [Header("Doors")]
-    [SerializeField] private GameObject _leftDoor;
-    [SerializeField] private GameObject _rightDoor;
-    [SerializeField] private GameObject _upDoor;
-    [SerializeField] private GameObject _downDoor;
+    [SerializeField] private Door _leftDoor;
+    [SerializeField] private Door _rightDoor;
+    [SerializeField] private Door _upDoor;
+    [SerializeField] private Door _downDoor;
     
     [Header("Spawn positions")]
     [SerializeField] private Transform _leftSpawn;
@@ -38,7 +38,6 @@ public class RoomController : MonoBehaviour
     [SerializeField] private List<Item> _shopItems = new();
 
     private List<EnemyAI> _spawnedEnemy = new();
-    private bool _isRoomBlocked = false;
     protected Vector2Int PlayerRoom => Player.Instance.CurrentRoomCoords;
 
     public event System.Action OnBossesDeath;
@@ -56,7 +55,7 @@ public class RoomController : MonoBehaviour
 
     private IEnumerator RerenderRoom(Vector2Int roomPosition)
     {
-        _isRoomBlocked = false;
+        OpenDoors();
         _spawnedEnemy.Clear();
         yield return null;
 
@@ -71,19 +70,26 @@ public class RoomController : MonoBehaviour
 
         var room = MapController.Instance.GetRoom(roomPosition);
 
-        _leftDoor.SetActive(false);
-        _rightDoor.SetActive(false);
-        _upDoor.SetActive(false);
-        _downDoor.SetActive(false);
-
         if (MapController.Instance.RoomExists(roomPosition + Vector2Int.left))
-            _leftDoor.SetActive(true);
+            _leftDoor.Create();
+        else
+            _leftDoor.Delete();
+
         if (MapController.Instance.RoomExists(roomPosition + Vector2Int.right))
-            _rightDoor.SetActive(true);
+            _rightDoor.Create();
+        else
+            _rightDoor.Delete();
+
         if (MapController.Instance.RoomExists(roomPosition + Vector2Int.up))
-            _upDoor.SetActive(true);
+            _upDoor.Create();
+        else
+            _upDoor.Delete();
+
         if (MapController.Instance.RoomExists(roomPosition + Vector2Int.down))
-            _downDoor.SetActive(true);
+            _downDoor.Create();
+        else
+            _downDoor.Delete();
+
         yield return null;
 
         _surface.BuildNavMesh();
@@ -200,19 +206,22 @@ public class RoomController : MonoBehaviour
 
     private void CloseDoors()
     {
-        _isRoomBlocked = true;
+        _leftDoor.Close();
+        _rightDoor.Close();
+        _upDoor.Close();
+        _downDoor.Close();
     }
 
     private void OpenDoors()
     {
-        _isRoomBlocked = false;
+        _leftDoor.Open();
+        _rightDoor.Open();
+        _upDoor.Open();
+        _downDoor.Open();
     }
 
     private void MoveToRoom(Vector2Int direction)
     {
-        if (_isRoomBlocked)
-            return;
-
         var next = PlayerRoom + direction;
         if (!MapController.Instance.IsRoomPossible(next) || !MapController.Instance.IsRoom(next))
         {
@@ -220,14 +229,16 @@ public class RoomController : MonoBehaviour
             return;
         }
 
-        if (direction == Vector2Int.left)
+        if (direction == Vector2Int.left && _leftDoor.IsOpen)
             Player.Instance.transform.position = _rightSpawn.position;
-        else if (direction == Vector2Int.right)
+        else if (direction == Vector2Int.right && _rightDoor.IsOpen)
             Player.Instance.transform.position = _leftSpawn.position;
-        else if (direction == Vector2Int.up)
+        else if (direction == Vector2Int.up && _upDoor.IsOpen)
             Player.Instance.transform.position = _downSpawn.position;
-        else if (direction == Vector2Int.down)
+        else if (direction == Vector2Int.down && _downDoor.IsOpen)
             Player.Instance.transform.position = _upSpawn.position;
+        else
+            return;
         
         MapController.Instance.GetRoom(PlayerRoom).SaveGroundLoot(_roomContentParent);
 
