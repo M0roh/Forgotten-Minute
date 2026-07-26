@@ -2,7 +2,7 @@
 - Project name: Forgotten Minute
 - Unity version: Unity 6000.5.4f1
 - Active game object:
-  - Name: Door Left
+  - Name: HalfHeart Item
   - Tag: Untagged
   - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->
