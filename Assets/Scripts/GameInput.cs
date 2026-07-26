@@ -19,12 +19,12 @@ public class GameInput : MonoBehaviour
 
     private void OnEnable()
     {
-        _actions.Player.Enable();
+        _actions.Enable();
     }
 
     private void OnDisable()
     {
-        _actions.Player.Disable();
+        _actions.Disable();
     }
 
     public Vector2 GetMoveVector() => _actions.Player.Move.ReadValue<Vector2>();
