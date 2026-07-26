@@ -3,19 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(Camera), typeof(PolygonCollider2D))]
-public class Player : MonoBehaviour
+[RequireComponent(typeof(Animator), typeof(Rigidbody2D), typeof(Camera))]
+public class Player : MonoBehaviour 
 {
+    private static readonly int IsRunHash = Animator.StringToHash("IsRun");
     private static Player _instance;
     public static Player Instance => _instance;
 
     [Header("Health")]
     private int _health = 10;
     [SerializeField] private int _maxHealth = 10;
-
-    [Header("Damage")]
-    [SerializeField] private int _damage = 2;
-    private bool _canAttack = true;
 
     [Header("Speed")]
     private float _currentSpeed = 0;
@@ -29,9 +26,11 @@ public class Player : MonoBehaviour
 
     public Vector2Int CurrentRoomCoords => _currentRoomCoords;
 
+    private Sword _sword;
     private Rigidbody2D _rb;
-    private PolygonCollider2D _attackCollider;
+    private Animator _animator;
 
+    public Sword Sword => _sword;
     public int Health
     {
         get => _health;
@@ -68,19 +67,8 @@ public class Player : MonoBehaviour
         }
     }
 
-    public int Damage
-    {
-        get => _damage;
-        set
-        {
-            _damage = value;
-            OnDamageChange?.Invoke(value);
-        }
-    }
-
     public event Action<int> OnHealthChange;
     public event Action<int> OnCoinsChange;
-    public event Action<int> OnDamageChange;
     public event Action OnDeath;
 
     private void Awake()
@@ -90,15 +78,13 @@ public class Player : MonoBehaviour
         _instance = this;
 
         _rb = GetComponent<Rigidbody2D>();
-        _attackCollider = GetComponent<PolygonCollider2D>();
+
+        _animator = GetComponent<Animator>();
+
+        _sword = GetComponentInChildren<Sword>();
 
         Health = _maxHealth;
         _currentSpeed = _walkSpeed;
-    }
-
-    private void Start()
-    {
-        AttackColliderOff();
     }
 
     void Update()
@@ -108,48 +94,15 @@ public class Player : MonoBehaviour
 
     private void OnEnable()
     {
-        GameInput.Instance.Actions.Player.Attack.performed += Attack_performed;
-
         GameInput.Instance.Actions.Player.Sprint.started += Sprint_started;
         GameInput.Instance.Actions.Player.Sprint.canceled += Sprint_canceled;
     }
 
     private void OnDisable()
-    {
-        GameInput.Instance.Actions.Player.Attack.performed -= Attack_performed;
-
+    { 
         GameInput.Instance.Actions.Player.Sprint.started -= Sprint_started;
         GameInput.Instance.Actions.Player.Sprint.canceled -= Sprint_canceled;
     }
-
-    private void Attack_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
-    {
-        if (_canAttack)
-        {
-            _canAttack = false;
-            //_animator.SetTrigger(IS_ATTACK);
-
-            AttackColliderOn();
-            StartCoroutine(AttackCooldown());
-        }
-    }
-
-    private IEnumerator AttackCooldown()
-    {
-        yield return new WaitForSeconds(0.8f);
-        AttackColliderOff();
-        yield return new WaitForSeconds(1.2f);
-        AttackEndTrigger();
-    }
-
-    public void AttackColliderOn()
-    {
-        _hitEnemies.Clear();
-        _attackCollider.enabled = true;
-    }
-    public void AttackColliderOff() => _attackCollider.enabled = false;
-
-    public void AttackEndTrigger() => _canAttack = true;
 
     private void Sprint_started(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     {
@@ -165,6 +118,20 @@ public class Player : MonoBehaviour
     {
         var moveVector = GameInput.Instance.GetMoveVector();
 
+        if (moveVector.magnitude >= 0.01f)
+        {
+            transform.localScale = new Vector3(
+                Mathf.Sign(moveVector.x),
+                1,
+                1
+            );
+
+            if (!_animator.GetBool(IsRunHash))
+                _animator.SetBool(IsRunHash, true);
+            else if (_animator.GetBool(IsRunHash))
+                _animator.SetBool(IsRunHash, false);
+        }
+
         _rb.linearVelocity = moveVector * _currentSpeed;
     }
 
@@ -172,26 +139,15 @@ public class Player : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        if (Health <= 0) return;
+
         if (Health - damage <= 0)
         {
             Health = 0;
+            _animator.SetTrigger("Death");
             OnDeath?.Invoke();
         }
         else
             Health -= damage;
-    }
-
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (!_attackCollider.enabled)
-            return;
-
-        if (!collision.TryGetComponent(out EnemyAI enemy))
-            return;
-
-        if (!_hitEnemies.Add(enemy))
-            return;
-
-        enemy.TakeDamage(_damage);
     }
 }

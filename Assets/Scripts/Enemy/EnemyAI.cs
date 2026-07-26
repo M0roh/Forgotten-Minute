@@ -188,6 +188,7 @@ public abstract class EnemyAI : MonoBehaviour
             _currentState = State.Death;
             Agent.isStopped = true;
             OnDeath?.Invoke(this);
+            AfterDeathTrigger();
         //  _animator.SetTrigger(IS_DEATH);
 
             return true;
@@ -258,8 +259,14 @@ public abstract class EnemyAI : MonoBehaviour
 
             ChangingFacingRotation(transform.position, Player.Instance.transform.position);
             _navMeshAgent.isStopped = true;
-            AfterAttackTrigger();
+            StartCoroutine(AttackCd());
         }
+    }
+
+    private IEnumerator AttackCd()
+    {
+        yield return new WaitForSeconds(0.5f);
+        AfterAttackTrigger();
     }
 
     protected virtual void FollowStateUpdate()

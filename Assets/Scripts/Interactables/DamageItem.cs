@@ -7,7 +7,7 @@ public class DamageItem : Item
 
     protected override void OnInteract(Player player)
     {
-        player.Damage += _dmgUpCount;
+        player.Sword.Damage += _dmgUpCount;
 
         Destroy(gameObject);
     }

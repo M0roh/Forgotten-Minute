@@ -26,21 +26,21 @@ public class PlayerStatsUI : MonoBehaviour
     {
         Player_OnCoinsChange(Player.Instance.Coins);
         Player_OnHealthChange(Player.Instance.Health);
-        Player_OnDamageChange(Player.Instance.Damage);
+        Player_OnDamageChange(Player.Instance.Sword.Damage);
     }
 
     private void OnEnable()
     {
         Player.Instance.OnHealthChange += Player_OnHealthChange;
         Player.Instance.OnCoinsChange += Player_OnCoinsChange;
-        Player.Instance.OnDamageChange += Player_OnDamageChange;
+        Player.Instance.Sword.OnDamageChange += Player_OnDamageChange;
     }
 
     private void OnDisable()
     {
         Player.Instance.OnHealthChange -= Player_OnHealthChange;
         Player.Instance.OnCoinsChange -= Player_OnCoinsChange;
-        Player.Instance.OnDamageChange -= Player_OnDamageChange;
+        Player.Instance.Sword.OnDamageChange -= Player_OnDamageChange;
     }
 
     private void Player_OnDamageChange(int damage)
