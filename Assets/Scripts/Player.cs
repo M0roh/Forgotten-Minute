@@ -81,6 +81,7 @@ public class Player : MonoBehaviour
     public event Action<int> OnHealthChange;
     public event Action<int> OnCoinsChange;
     public event Action<int> OnDamageChange;
+    public event Action OnDeath;
 
     private void Awake()
     {
@@ -169,7 +170,16 @@ public class Player : MonoBehaviour
 
     public void EnterRoom(Vector2Int roomCoords) => _currentRoomCoords = roomCoords;
 
-    public void TakeDamage(int damage) => Health -= damage;
+    public void TakeDamage(int damage)
+    {
+        if (Health - damage <= 0)
+        {
+            Health = 0;
+            OnDeath?.Invoke();
+        }
+        else
+            Health -= damage;
+    }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {

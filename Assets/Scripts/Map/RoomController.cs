@@ -3,8 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RoomRenderer : MonoBehaviour
+public class RoomController : MonoBehaviour
 {
+    private static RoomController _instance;
+    public static RoomController Instance => _instance;
+
     [Header("Room")]
     [SerializeField] private NavMeshSurface _surface;
     [SerializeField] private Transform _roomContentParent;
@@ -38,6 +41,14 @@ public class RoomRenderer : MonoBehaviour
     private bool _isRoomBlocked = false;
     protected Vector2Int PlayerRoom => Player.Instance.CurrentRoomCoords;
 
+    public event System.Action OnBossesDeath;
+
+    private void Awake()
+    {
+        if (_instance != null)
+            Destroy(this);
+        _instance = this;
+    }
     private void Start()
     {
         StartCoroutine(RerenderRoom(PlayerRoom));
@@ -150,7 +161,7 @@ public class RoomRenderer : MonoBehaviour
                     break;
 
                 CloseDoors();
-                var bossIndex = Random.Range(0, _enemies.Count);
+                var bossIndex = Random.Range(0, _bosses.Count);
                 var bossPrefab = _bosses[bossIndex];
 
                 var boss = Instantiate(bossPrefab, Vector3.zero, Quaternion.identity, _roomContentParent);
@@ -174,7 +185,15 @@ public class RoomRenderer : MonoBehaviour
         if (_spawnedEnemy.Count == 0)
         {
             OpenDoors();
-            MapController.Instance.GetRoom(PlayerRoom).RoomClear();
+            var room = MapController.Instance.GetRoom(PlayerRoom);
+                
+            if (room.State == RoomState.RoomType.Boss)
+            {
+                OnBossesDeath?.Invoke();
+
+            }
+
+            room.RoomClear();
             StartCoroutine(RerenderRoom(PlayerRoom));
         }
     }

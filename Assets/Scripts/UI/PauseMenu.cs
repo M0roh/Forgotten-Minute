@@ -27,16 +27,21 @@ public class PauseMenu : MonoBehaviour
         if (PauseLayout.activeSelf)
             ContinueButton();
         else
-        {
-            Time.timeScale = 0;
-            PauseLayout.SetActive(true);
-        }
+            Pause();
+    }
+
+    public void Pause()
+    {
+        Time.timeScale = 0;
+        PauseLayout.SetActive(true);
+        GameInput.Instance.Actions.Player.Disable();
     }
 
     public void ContinueButton()
     {
         Time.timeScale = 1;
         PauseLayout.SetActive(false);
+        GameInput.Instance.Actions.Player.Enable();
     }
 
     public void SettingsButton() { }
