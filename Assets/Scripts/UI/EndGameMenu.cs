@@ -31,21 +31,27 @@ public class EndGameMenu : MonoBehaviour
 
     private void VictoryGame()
     {
-        Pause();
+        StopGame();
         _gameResultText.text = _victoryText;
     }
 
     private void GameOver()
     {
-        Pause();
+        StopGame();
         _gameResultText.text = _gameOverText;
     }
 
-    public void Pause()
+    private void StopGame()
     {
         Time.timeScale = 0;
         EndGameLayout.SetActive(true);
         GameInput.Instance.Actions.Disable();
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void ExitButton()
